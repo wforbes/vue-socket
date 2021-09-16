@@ -22,26 +22,33 @@
 		</form>
 		<script src="/socket.io/socket.io.js"></script>
 		<script>
+			const username = prompt("What's your name, kid?");
 			const socket = io();
+			socket.on("connect", () => {
+				socket.emit("sign on", username);
+			})
 
   			const messages = document.getElementById('messages');
 			const form = document.getElementById('form');
 			const input = document.getElementById('input');
 
+			const appendMessage = (msg, prefix="", wrap="") => {
+				var item = document.createElement('li');
+				item.textContent = `${prefix}${wrap}${msg}${wrap}`;
+				messages.appendChild(item);
+				window.scrollTo(0, document.body.scrollHeight);
+			};
+
 			form.addEventListener('submit', function(e) {
 				e.preventDefault();
 				if (input.value) {
 					socket.emit('chat message', input.value);
+					appendMessage(input.value, "You say: ", "'");
 					input.value = '';
 				}
 			});
 
-			socket.on('chat message', function(msg) {
-				var item = document.createElement('li');
-				item.textContent = msg;
-				messages.appendChild(item);
-				window.scrollTo(0, document.body.scrollHeight);
-			});
+			socket.on('chat message', appendMessage);
 		</script>
 	</body>
 </html>

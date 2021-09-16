@@ -10,14 +10,19 @@ app.get('/', (req, res) => {
 });
 
 io.on('connection', (socket) => {
-  console.log('a user connected');
+  socket.broadcast.emit('chat message', 'a user connected');
+
+  socket.on('sign on', (username) => {
+    socket.data.username = username;
+  });
 
   socket.on('chat message', (msg) => {
-    io.emit('chat message', msg);
+    let fullMsg = `${socket.data.username} says: '${msg}'`;
+    socket.broadcast.emit('chat message', fullMsg);
   });
 
   socket.on('disconnect', () => {
-    console.log('user disconnected');
+    socket.broadcast.emit('chat message', 'user disconnected');
   });
 });
 
