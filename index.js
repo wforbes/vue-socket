@@ -21,6 +21,11 @@ io.on('connection', (socket) => {
     socket.broadcast.emit('chat message', fullMsg);
   });
 
+  socket.on('typing', (isTyping) => {
+    console.log("Typing", socket.data.username, isTyping);
+    socket.broadcast.emit('otherIsTyping', { isTyping, username: socket.data.username });
+  })
+
   socket.on('disconnect', () => {
     socket.broadcast.emit('chat message', 'user disconnected');
   });
