@@ -27,9 +27,16 @@
 									}}
 								</li>
 							</ul>
-							<span id="typingNotification"></span>
 							<v-card id="form">
-								<input id="input" v-model="chatInput" autocomplete="off" />
+								<span id="typingNotification">
+									{{ typingNotification }}
+								</span>
+								<input
+									id="input"
+									v-model="chatInput"
+									@keyup.enter.exact="sendMsg"
+									autocomplete="off"
+								/>
 								<v-btn @click.stop.prevent="sendMsg">Send</v-btn>
 							</v-card>
 						</v-card>
@@ -59,7 +66,13 @@ export default {
 			msgWrap: "'",
 			chatInput: "",
 			socketMessage: "",
-			messages: []
+			messages: [],
+			chatWasSent: false,
+			isTyping: false,
+			typingTimeout: {},
+			typingDelay: 1000,
+			typers: [],
+			typingNotification: ""
 		};
 	},
 	sockets: {
@@ -71,6 +84,25 @@ export default {
 		},
 		chatMessage(data) {
 			this.appendMsg(data);
+		},
+		otherIsTyping(typer) {
+			this.handleOtherTyping(typer);
+		}
+	},
+	watch: {
+		chatInput() {
+			if (this.chatWasSent) {
+				this.chatWasSent = false;
+				return;
+			}
+			if (!this.isTyping) {
+				this.isTyping = true;
+				this.$socket.emit("typing", true);
+				this.typingTimeout = setTimeout(this.typingStopped(), this.typingDelay);
+			} else {
+				clearTimeout(this.typingTimeout);
+				this.typingTimeout = setTimeout(this.typingStopped(), this.typingDelay);
+			}
 		}
 	},
 	methods: {
@@ -80,7 +112,6 @@ export default {
 			this.signedOn = true;
 		},
 		sendMsg() {
-			console.log(this.chatInput);
 			if (this.chatInput.length > 0) {
 				this.$socket.emit("chatMessage", this.chatInput);
 				this.messages.push({
@@ -88,12 +119,58 @@ export default {
 					content: this.chatInput,
 					class: ""
 				});
+				this.chatWasSent = true;
 				this.chatInput = "";
 			}
 		},
 		appendMsg(message) {
 			if (!this.signedOn) return;
 			this.messages.push({ ...message, class: "other" });
+		},
+		typingStopped() {
+			return () => {
+				if (this.isTyping) {
+					this.isTyping = false;
+					this.$socket.emit("typing", false);
+				}
+			};
+		},
+		handleOtherTyping(typer) {
+			if (typer.isTyping === true) {
+				if (!this.typers.includes(typer.username)) {
+					this.typers.push(typer.username);
+				}
+			} else {
+				let typerIndex = this.typers.findIndex((t) => t === typer.username);
+				this.typers.splice(typerIndex, 1);
+			}
+
+			if (this.typers.length > 0) {
+				let typerString = "";
+				for (let i = 0; i < this.typers.length; i++) {
+					typerString += this.typers[i];
+
+					if (i !== this.typers.length - 1 && this.typers.length > 2) {
+						typerString += ", ";
+					}
+					if (this.typers.length === 2) {
+						typerString += " ";
+					}
+					if (i === this.typers.length - 2) {
+						typerString += "and ";
+					}
+				}
+				if (this.typers.length > 1) {
+					typerString += " are typing...";
+				} else {
+					typerString += " is typing...";
+				}
+				this.typingNotification = typerString;
+			} else {
+				if (this.typingNotification !== "") {
+					this.typingNotification = "";
+				}
+			}
 		}
 	}
 };
@@ -155,6 +232,9 @@ body {
 	list-style-type: none;
 	margin: 0;
 	padding: 0;
+	padding-bottom: 1em;
+	overflow-y: auto;
+	max-height: 90%;
 }
 #messages > li {
 	padding: 0.5rem 1rem;
