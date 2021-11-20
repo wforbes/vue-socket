@@ -13,7 +13,8 @@ module.exports = {
 		"indent": ["error", "tab"],
 		"prettier/prettier": [
 			"warn", {
-				useTabs: true
+				useTabs: true,
+        trailingComma: "none"
 			}
 		]
   },
