@@ -238,9 +238,10 @@ body {
 }
 #messages > li {
 	padding: 0.5rem 1rem;
+	background: #efefef;
 }
 #messages > .other {
-	background: #efefef;
+	background: #fff;
 }
 
 #typingNotification {

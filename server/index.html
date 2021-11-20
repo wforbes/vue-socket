@@ -11,8 +11,8 @@
 			#form > button { background: #333; border: none; padding: 0 1rem; margin: 0.25rem; border-radius: 3px; outline: none; color: #fff; }
 
 			#messages { list-style-type: none; margin: 0; padding: 0; }
-			#messages > li { padding: 0.5rem 1rem; }
-			#messages > li:nth-child(odd) { background: #efefef; }
+			#messages > li { padding: 0.5rem 1rem; background: #efefef; }
+			#messages > .other { background: #fff; }
 
 			#typingNotification { position: fixed; bottom: 3rem; padding-left: 1rem; }
 		</style>
@@ -40,15 +40,18 @@
 			let typingTimeout;
 			let typingDelay = 1000;
 
-			const appendMessage = (msg, prefix="", wrap="") => {
+			const appendMessage = (msg, prefix="", wrap="", other=false) => {
 				var item = document.createElement('li');
+				if (other) {
+					item.classList.add("other");
+				}
 				item.textContent = `${prefix}${wrap}${msg}${wrap}`;
 				messages.appendChild(item);
 				window.scrollTo(0, document.body.scrollHeight);
 			};
 
 			const appendChatMessage = (message) => {
-				appendMessage(`${message.prefix} '${message.content}'`);
+				appendMessage(`${message.prefix} '${message.content}'`, "", "", true);
 			};
 
 			const typingStopped = () => {
