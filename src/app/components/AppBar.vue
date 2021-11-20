@@ -41,9 +41,11 @@
 						>
 							<v-icon>mdi-account</v-icon>
 						</v-btn>
+						<!--
 						<v-btn v-else icon class="mr-3" to="/login">
 							<v-icon>mdi-key</v-icon>
 						</v-btn>
+						-->
 					</v-col>
 				</v-row>
 			</v-container>
