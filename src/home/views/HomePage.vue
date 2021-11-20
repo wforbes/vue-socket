@@ -16,12 +16,8 @@
 					<v-col>
 						<h1>Chat Room Demo</h1>
 						<v-card v-if="signedOn" class="pa-3 mb-4" id="chat-room-card">
-							<ul
-								id="messages"
-								v-for="message of messages"
-								:key="message.messageId"
-							>
-								<li>
+							<ul id="messages">
+								<li v-for="message of messages" :key="message.messageId">
 									{{
 										`${message.prefix} ${msgWrap} ${message.content} ${msgWrap}`
 									}}
@@ -69,7 +65,6 @@ export default {
 		disconnect() {
 			this.isConnected = false;
 		},
-		// Fired when the server sends something on the "messageChannel" channel.
 		chatMessage(data) {
 			this.appendMsg(data);
 		}
