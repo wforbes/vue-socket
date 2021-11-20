@@ -17,7 +17,11 @@
 						<h1>Chat Room Demo</h1>
 						<v-card v-if="signedOn" class="pa-3 mb-4" id="chat-room-card">
 							<ul id="messages">
-								<li v-for="message of messages" :key="message.messageId">
+								<li
+									v-for="message of messages"
+									:key="message.messageId"
+									:class="message.class"
+								>
 									{{
 										`${message.prefix} ${msgWrap} ${message.content} ${msgWrap}`
 									}}
@@ -79,13 +83,17 @@ export default {
 			console.log(this.chatInput);
 			if (this.chatInput.length > 0) {
 				this.$socket.emit("chatMessage", this.chatInput);
-				this.messages.push({ prefix: "You say: ", content: this.chatInput });
+				this.messages.push({
+					prefix: "You say: ",
+					content: this.chatInput,
+					class: ""
+				});
 				this.chatInput = "";
 			}
 		},
 		appendMsg(message) {
 			if (!this.signedOn) return;
-			this.messages.push(message);
+			this.messages.push({ ...message, class: "other" });
 		}
 	}
 };
@@ -151,7 +159,7 @@ body {
 #messages > li {
 	padding: 0.5rem 1rem;
 }
-#messages > li:nth-child(odd) {
+#messages > .other {
 	background: #efefef;
 }
 
