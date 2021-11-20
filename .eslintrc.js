@@ -14,7 +14,8 @@ module.exports = {
 		"prettier/prettier": [
 			"warn", {
 				useTabs: true,
-        trailingComma: "none"
+        trailingComma: "none",
+        endOfLine: "auto"
 			}
 		]
   },

@@ -5,6 +5,23 @@ import router from "./router";
 import store from "./store";
 import vuetify from "./plugins/vuetify";
 
+import SocketIO from "socket.io-client";
+import VueSocketIO from "vue-socket.io";
+
+Vue.use(
+	new VueSocketIO({
+		debug: true,
+		connection: SocketIO("localhost:3000/", {
+			withCredentials: true
+		}),
+		vuex: {
+			store,
+			actionPrefix: "SOCKET_",
+			mutationPrefix: "SOCKET_"
+		}
+	})
+);
+
 Vue.config.productionTip = false;
 
 new Vue({

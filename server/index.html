@@ -28,7 +28,7 @@
 			const username = prompt("What's your name, kid?");
 			const socket = io();
 			socket.on("connect", () => {
-				socket.emit("sign on", username);
+				socket.emit("signOn", username);
 			})
 
   			const messages = document.getElementById('messages');
@@ -45,6 +45,10 @@
 				item.textContent = `${prefix}${wrap}${msg}${wrap}`;
 				messages.appendChild(item);
 				window.scrollTo(0, document.body.scrollHeight);
+			};
+
+			const appendChatMessage = (message) => {
+				appendMessage(`${message.prefix} '${message.content}'`);
 			};
 
 			const typingStopped = () => {
@@ -106,13 +110,13 @@
 			form.addEventListener('submit', function(e) {
 				e.preventDefault();
 				if (input.value) {
-					socket.emit('chat message', input.value);
+					socket.emit('chatMessage', input.value);
 					appendMessage(input.value, "You say: ", "'");
 					input.value = '';
 				}
 			});
 
-			socket.on('chat message', appendMessage);
+			socket.on('chatMessage', appendChatMessage);
 		</script>
 	</body>
 </html>

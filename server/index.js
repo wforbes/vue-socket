@@ -2,23 +2,49 @@ const express = require("express");
 const app = express();
 const http = require("http");
 const server = http.createServer(app);
-const { Server } = require("socket.io");
-const io = new Server(server);
+const io = require("socket.io")(server, {
+	cors: {
+		origin: "http://localhost:8080",
+		methods: ["GET", "POST"],
+		credentials: true
+	}
+});
 
 app.get("/", (req, res) => {
 	res.sendFile(__dirname + "/index.html");
 });
 
 io.on("connection", (socket) => {
-	socket.broadcast.emit("chat message", "a user connected");
-
-	socket.on("sign on", (username) => {
-		socket.data.username = username;
+	socket.broadcast.emit("chatMessage", {
+		user: "system",
+		prefix: "SYSTEM msg:",
+		content: "(New connection)"
 	});
 
-	socket.on("chat message", (msg) => {
-		let fullMsg = `${socket.data.username} says: '${msg}'`;
-		socket.broadcast.emit("chat message", fullMsg);
+	socket.on("signOn", (username) => {
+		socket.data.username = username;
+		socket.broadcast.emit("chatMessage", {
+			user: "system",
+			prefix: "SYSTEM msg:",
+			content: username + " has connected!"
+		});
+	});
+
+	socket.on("disconnect", () => {
+		socket.broadcast.emit("chatMessage", {
+			user: "system",
+			prefix: "SYSTEM msg:",
+			content: socket.data.username + " has disconnected!"
+		});
+	});
+
+	socket.on("chatMessage", (msg) => {
+		//let fullMsg = `${socket.data.username} says: '${msg}'`;
+		socket.broadcast.emit("chatMessage", {
+			user: socket.data.username,
+			prefix: `${socket.data.username} says:`,
+			content: msg
+		});
 	});
 
 	socket.on("typing", (isTyping) => {
@@ -27,10 +53,6 @@ io.on("connection", (socket) => {
 			isTyping,
 			username: socket.data.username
 		});
-	});
-
-	socket.on("disconnect", () => {
-		socket.broadcast.emit("chat message", "user disconnected");
 	});
 });
 

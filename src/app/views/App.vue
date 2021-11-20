@@ -42,7 +42,7 @@ export default {
 	}),
 	created() {
 		axios.defaults.withCredentials = true;
-		this.$store.dispatch({ type: "setupStore", vue: this });
+		/*this.$store.dispatch({ type: "setupStore", vue: this });*/
 	}
 };
 </script>
