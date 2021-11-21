@@ -21,6 +21,7 @@
 									v-for="message of messages"
 									:key="message.messageId"
 									:class="message.class"
+									:id="'msg-' + message.messageId"
 								>
 									{{
 										`${message.prefix} ${msgWrap} ${message.content} ${msgWrap}`
@@ -72,7 +73,8 @@ export default {
 			typingTimeout: {},
 			typingDelay: 1000,
 			typers: [],
-			typingNotification: ""
+			typingNotification: "",
+			recentlyAppended: false
 		};
 	},
 	sockets: {
@@ -83,7 +85,7 @@ export default {
 			this.isConnected = false;
 		},
 		chatMessage(data) {
-			this.appendMsg(data);
+			this.appendMsg(data, "other");
 		},
 		otherIsTyping(typer) {
 			this.handleOtherTyping(typer);
@@ -105,6 +107,9 @@ export default {
 			}
 		}
 	},
+	updated() {
+		this.updateMessageScroll();
+	},
 	methods: {
 		signOn() {
 			if (this.username === "") return;
@@ -113,19 +118,24 @@ export default {
 		},
 		sendMsg() {
 			if (this.chatInput.length > 0) {
-				this.$socket.emit("chatMessage", this.chatInput);
-				this.messages.push({
-					prefix: "You say: ",
-					content: this.chatInput,
-					class: ""
+				this.$socket.emit("chatMessage", this.chatInput, (messageId) => {
+					this.appendMsg({
+						messageId,
+						prefix: "You say: ",
+						content: this.chatInput,
+						class: ""
+					});
+					this.chatWasSent = true;
+					this.chatInput = "";
 				});
-				this.chatWasSent = true;
-				this.chatInput = "";
 			}
 		},
-		appendMsg(message) {
+		appendMsg(message, source = "") {
 			if (!this.signedOn) return;
-			this.messages.push({ ...message, class: "other" });
+			this.recentlyAppended = true;
+			const messagesCopy = this.messages.slice(0);
+			messagesCopy.push({ ...message, class: source });
+			this.messages = messagesCopy;
 		},
 		typingStopped() {
 			return () => {
@@ -170,6 +180,36 @@ export default {
 				if (this.typingNotification !== "") {
 					this.typingNotification = "";
 				}
+			}
+		},
+		elementScrolledToBottom(el) {
+			const scrollPos = el.scrollHeight - el.scrollTop;
+			const tolerance = 10; // allow for first message that begins scrolling
+			return (
+				scrollPos === el.clientHeight + 40 ||
+				scrollPos < el.clientHeight + tolerance
+			);
+		},
+		elementExists(el) {
+			return el !== null;
+		},
+		elementHasChildren(el) {
+			return el.children.length > 0;
+		},
+		updateMessageScroll() {
+			if (this.recentlyAppended) {
+				const messageList = this.$el.querySelector("#messages");
+				if (
+					this.elementExists(messageList) &&
+					this.elementHasChildren(messageList)
+				) {
+					if (this.elementScrolledToBottom(messageList)) {
+						messageList.scrollTop = messageList.scrollHeight;
+					} else {
+						// TODO: Display a 'scroll to bottom' prompt
+					}
+				}
+				this.recentlyAppended = false;
 			}
 		}
 	}

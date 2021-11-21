@@ -1,3 +1,7 @@
+"use strict";
+
+const { v4: uuidv4 } = require("uuid");
+
 const express = require("express");
 const app = express();
 const http = require("http");
@@ -38,9 +42,11 @@ io.on("connection", (socket) => {
 		});
 	});
 
-	socket.on("chatMessage", (msg) => {
-		//let fullMsg = `${socket.data.username} says: '${msg}'`;
+	socket.on("chatMessage", (msg, callback) => {
+		const messageId = uuidv4();
+		callback(messageId);
 		socket.broadcast.emit("chatMessage", {
+			messageId,
 			user: socket.data.username,
 			prefix: `${socket.data.username} says:`,
 			content: msg
